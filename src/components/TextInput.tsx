@@ -20,7 +20,26 @@ const TextInput: React.FC<TextInputProps> = ({ text, setText, hasUserEdited, set
   // Handle text changes
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
-    setText(newText);  // Propagate changes to parent state
+
+    // Restrict to 500 characters
+    if (newText.length <= 500) {
+      setText(newText); // Propagate changes to parent state
+      setHasUserEdited(true);
+    }
+  };
+
+  // Handle paste events to trim text to 500 characters
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const paste = e.clipboardData.getData('text');
+    const maxLength = 500;
+    const totalText = text + paste;  // Combine existing text and pasted text
+
+    // Trim the combined text to 500 characters
+    const trimmedText = totalText.length > maxLength ? totalText.substring(0, maxLength) : totalText;
+
+    // Prevent the default paste behavior and insert the trimmed text
+    e.preventDefault();
+    setText(trimmedText);
     setHasUserEdited(true);
   };
 
@@ -31,6 +50,7 @@ const TextInput: React.FC<TextInputProps> = ({ text, setText, hasUserEdited, set
       placeholder="Enter text here..."
       value={text}
       onChange={handleChange}
+      onPaste={handlePaste}
     ></textarea>
   );
 };

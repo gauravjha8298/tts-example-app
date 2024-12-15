@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { ElevenLabs } from "elevenlabs";
 import axios from 'axios';
+import { getItemWithExpiration, setItemWithExpiration } from '@/lib/LocalStorageWithExpiration';
 
 type VoiceSelectorProps = {
   selectedVoice: string;
@@ -16,6 +17,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ selectedVoice, setSelecte
 
   // Fetch voices from the API
   useEffect(() => {
+
     async function fetchVoices() {
       try {
         const response = await axios.get('/api/getVoices');
@@ -24,6 +26,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ selectedVoice, setSelecte
 
         // If there are no voices, set the state as empty array
         if (response.data.voices.length > 0) {
+          setItemWithExpiration("voices", response.data.voices);
           setVoices(response.data.voices);
           setSelectedVoice(response.data.voices[0].voice_id); // Select first voice by default
         } else {
@@ -36,7 +39,14 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ selectedVoice, setSelecte
       }
     }
 
-    fetchVoices();
+    const voices = getItemWithExpiration("voices");
+    if(!voices) fetchVoices();
+    else {
+      setVoices(voices);
+      setSelectedVoice(voices[0].voice_id); // Select first voice by default
+      setLoading(false);
+      setError(null); 
+    }
   }, [setSelectedVoice]);
 
   return (

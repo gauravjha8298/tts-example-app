@@ -1,3 +1,4 @@
+import { MAX_TEXT_LENGTH } from '@/constants/tts-textarea.constants';
 import TTSCLient from '@/lib/TTSClient';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -11,6 +12,8 @@ const synthesize = async (req: NextApiRequest, res: NextApiResponse) => {
     if (!text || !voiceId) {
       return res.status(400).json({ error: 'Text and voiceId are required' });
     }
+
+    if(text.length > MAX_TEXT_LENGTH) return res.status(400).json({ error: 'Only 500 characters allowed!' });
 
     const audioStream = await TTSCLient.synthesize({text, voiceId})
 
